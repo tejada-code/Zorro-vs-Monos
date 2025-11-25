@@ -75,8 +75,7 @@ class AssetLoader {
             canvas.width = frameWidth;
             canvas.height = frameHeight;
             const context = canvas.getContext('2d');
-            context.drawImage(sheet, i * frameWidth, 0, frameWidth, frameHeight, 0, 0, frameWidth, frameHeight); // Solo añadimos el frame si tiene píxeles visibles, para evitar parpadeos.
-            // Solo añadimos el frame si tiene píxeles visibles, para evitar parpadeos.
+            context.drawImage(sheet, i * frameWidth, 0, frameWidth, frameHeight, 0, 0, frameWidth, frameHeight);
             if (this.#hasVisiblePixels(context, frameWidth, frameHeight)) { frames.push(canvas); }
         }
         // Si después de filtrar no queda ningún frame, añadimos uno vacío para evitar errores.
@@ -84,7 +83,7 @@ class AssetLoader {
             const canvas = document.createElement('canvas');
             canvas.width = frameWidth;
             canvas.height = frameHeight;
-            frames.push(canvas); // Si la animación de explosión tiene frames vacíos al final, esto puede causar problemas.
+            frames.push(canvas);
         }
         return frames;
     }
