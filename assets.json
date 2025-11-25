@@ -57,7 +57,7 @@
       "frameRate": 12
     },
     "explosion": {
-      "spritesheet": "sprites/Explosion.png",
+      "spritesheet": "sprites/explosion.png",
       "frameCount": 12,
       "frameWidth": 32,
       "frameHeight": 32,
