@@ -93,13 +93,6 @@
     "level2": "fondo/fondo_nivel_2.avif"
   },
   "audio": {
-    "music": "sonido/musica_fondo.mp3",
-    "sfx": {
-      "shot": "sonido/disparo.wav",
-      "explosion": "sonido/explosion.wav",
-      "coin": "sonido/moneda.wav",
-      "shield": "sonido/escudo.wav",
-      "hit": "sonido/golpe.wav"
-    }
+    "music": "sonido/musica_fondo.mp3"
   }
 }
