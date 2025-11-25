@@ -3,6 +3,7 @@ const CONFIG = {
     canvasHeight: 540,
     paso: 32,
     maxLives: 3,
+    groundOffset: 48,
     shieldDuration: 1000,
     invulnerableMs: 800,
     coinTarget: 3,
@@ -54,18 +55,78 @@ class AssetLoader {
 
     async #loadSprites() {
         const tasks = Object.entries(this.manifest.sprites).map(async ([key, def]) => {
-            const frames = await Promise.all(
-                def.frames.map(path => this.#loadImage(path))
-            );
-            this.sprites.set(key, {
-                frames,
-                frameRate: def.frameRate ?? 8,
-                loop: def.loop ?? true,
-                width: def.width ?? frames[0].naturalWidth,
-                height: def.height ?? frames[0].naturalHeight
-            });
+            if (def.spritesheet) {
+                const sheet = await this.#loadImage(def.spritesheet);
+                const frames = this.#sliceSheet(sheet, def);
+                this.sprites.set(key, {
+                    frames,
+                    frameRate: def.frameRate ?? 8,
+                    loop: def.loop ?? true,
+                    width: def.frameWidth ?? frames[0].width,
+                    height: def.frameHeight ?? frames[0].height
+                });
+            } else {
+                const imageFrames = await Promise.all(
+                    (def.frames ?? []).map(path => this.#loadImage(path))
+                );
+                this.sprites.set(key, {
+                    frames: imageFrames,
+                    frameRate: def.frameRate ?? 8,
+                    loop: def.loop ?? true,
+                    width: def.width ?? imageFrames[0].naturalWidth,
+                    height: def.height ?? imageFrames[0].naturalHeight
+                });
+            }
         });
         await Promise.all(tasks);
+    }
+
+    #sliceSheet(sheet, def) {
+        const frameCount = def.frameCount ?? 1;
+        const frameWidth = def.frameWidth ?? Math.floor(sheet.naturalWidth / frameCount);
+        const frameHeight = def.frameHeight ?? sheet.naturalHeight;
+        const frames = [];
+        const trimEmpty = def.trimEmpty ?? false;
+        for (let i = 0; i < frameCount; i += 1) {
+            const canvas = document.createElement('canvas');
+            canvas.width = frameWidth;
+            canvas.height = frameHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(
+                sheet,
+                i * frameWidth,
+                0,
+                frameWidth,
+                frameHeight,
+                0,
+                0,
+                frameWidth,
+                frameHeight
+            );
+            if (trimEmpty && !this.#hasVisiblePixels(context, frameWidth, frameHeight)) {
+                continue;
+            }
+            frames.push(canvas);
+        }
+        if (!frames.length) {
+            frames.push(this.#createEmptyFrame(frameWidth, frameHeight));
+        }
+        return frames;
+    }
+
+    #hasVisiblePixels(context, width, height) {
+        const { data } = context.getImageData(0, 0, width, height);
+        for (let i = 3; i < data.length; i += 4) {
+            if (data[i] > 5) return true;
+        }
+        return false;
+    }
+
+    #createEmptyFrame(width, height) {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        return canvas;
     }
 
     async #loadBackgrounds() {
@@ -163,12 +224,24 @@ class AnimatedSprite {
         this.elapsed += delta;
     }
 
+    reset() {
+        this.elapsed = 0;
+    }
+
     draw(context, x, y, { flip = false, scale = 1 } = {}) {
         const totalFrames = this.def.frames.length;
-        const frameIndex = Math.floor(this.elapsed * this.def.frameRate) % totalFrames;
+        if (!totalFrames) return;
+        let frameIndex = Math.floor(this.elapsed * this.def.frameRate);
+        if (this.def.loop) {
+            frameIndex %= totalFrames;
+        } else {
+            frameIndex = Math.min(frameIndex, totalFrames - 1);
+        }
         const image = this.def.frames[frameIndex];
-        const drawWidth = image.naturalWidth * scale;
-        const drawHeight = image.naturalHeight * scale;
+        const sourceWidth = image.naturalWidth ?? image.width;
+        const sourceHeight = image.naturalHeight ?? image.height;
+        const drawWidth = sourceWidth * scale;
+        const drawHeight = sourceHeight * scale;
         context.save();
         context.translate(x, y);
         if (flip) {
@@ -214,47 +287,64 @@ class Entity {
 
 class Player extends Entity {
     constructor(assetLoader) {
-        super(CONFIG.canvasWidth / 2 - 32, CONFIG.canvasHeight - 140, 64, 96);
+        const width = 64;
+        const height = 64;
+        super(CONFIG.canvasWidth / 2 - width / 2, CONFIG.canvasHeight - CONFIG.groundOffset - height, width, height);
         this.facing = 'right';
         this.lives = CONFIG.maxLives;
         this.coins = 0;
-        this.moving = false;
         this.assets = assetLoader;
         this.invulnerableUntil = 0;
         this.shieldUntil = 0;
         this.bullets = [];
-        this.currentAnim = this.#getAnim('idle');
+        this.animations = {
+            idle: new AnimatedSprite(this.assets.getSprite('playerIdleRight')),
+            walk: new AnimatedSprite(this.assets.getSprite('playerWalkRight'))
+        };
+        this.currentAnim = this.animations.idle;
+        this.currentAnim.reset();
         this.bulletSprite = assetLoader.getSprite('bullet');
+        const shieldLeft = assetLoader.getSprite('shieldLeft');
+        const shieldRight = assetLoader.getSprite('shieldRight');
+        this.shieldAnim = {
+            left: shieldLeft ? new AnimatedSprite(shieldLeft) : null,
+            right: shieldRight ? new AnimatedSprite(shieldRight) : null
+        };
+        this.walkTimeout = null;
     }
 
     reset() {
-        this.x = CONFIG.canvasWidth / 2 - 32;
-        this.y = CONFIG.canvasHeight - 140;
+        this.x = CONFIG.canvasWidth / 2 - this.width / 2;
+        this.y = CONFIG.canvasHeight - CONFIG.groundOffset - this.height;
         this.facing = 'right';
         this.lives = CONFIG.maxLives;
         this.coins = 0;
         this.bullets = [];
         this.invulnerableUntil = 0;
         this.shieldUntil = 0;
+        this.#setAnimation('idle');
     }
 
-    #getAnim(state) {
-        const key = state === 'walk'
-            ? (this.facing === 'right' ? 'playerWalkRight' : 'playerWalkLeft')
-            : (this.facing === 'right' ? 'playerIdleRight' : 'playerIdleLeft');
-        return new AnimatedSprite(this.assets.getSprite(key));
+    #setAnimation(state) {
+        const target = this.animations[state];
+        if (!target) return;
+        if (this.currentAnim !== target) {
+            target.reset();
+            this.currentAnim = target;
+        }
     }
 
     move(direction) {
         this.facing = direction;
         const delta = direction === 'left' ? -CONFIG.paso : CONFIG.paso;
         this.x = Math.max(0, Math.min(CONFIG.canvasWidth - this.width, this.x + delta));
-        this.moving = true;
-        this.currentAnim = this.#getAnim('walk');
-        setTimeout(() => {
-            this.moving = false;
-            this.currentAnim = this.#getAnim('idle');
-        }, 160);
+        this.#setAnimation('walk');
+        if (this.walkTimeout) {
+            clearTimeout(this.walkTimeout);
+        }
+        this.walkTimeout = setTimeout(() => {
+            this.#setAnimation('idle');
+        }, 240);
     }
 
     shoot() {
@@ -270,6 +360,8 @@ class Player extends Entity {
 
     activateShield(now) {
         this.shieldUntil = now + CONFIG.shieldDuration;
+        const anim = this.shieldAnim[this.facing] ?? this.shieldAnim.left;
+        if (anim) anim.reset();
     }
 
     takeDamage(now) {
@@ -292,6 +384,11 @@ class Player extends Entity {
         this.bullets.forEach(b => b.update(delta));
         if (now > this.shieldUntil) {
             this.shieldUntil = 0;
+            if (this.shieldAnim.left) this.shieldAnim.left.elapsed = 0;
+            if (this.shieldAnim.right) this.shieldAnim.right.elapsed = 0;
+        } else {
+            const anim = this.shieldAnim[this.facing];
+            if (anim) anim.update(delta);
         }
     }
 
@@ -299,11 +396,16 @@ class Player extends Entity {
         const flip = this.facing === 'left';
         this.currentAnim.draw(context, this.x, this.y, { flip });
         if (now < this.shieldUntil) {
-            const sprite = this.assets.getSprite('shieldLeft');
-            if (sprite) {
-                const anim = new AnimatedSprite(sprite);
-                anim.draw(context, this.facing === 'left' ? this.x - 20 : this.x + this.width - 20, this.y + 10, {
-                    flip: this.facing === 'right'
+            let anim = this.shieldAnim[this.facing];
+            let flipShield = false;
+            if (!anim && this.shieldAnim.left) {
+                anim = this.shieldAnim.left;
+                flipShield = this.facing === 'right';
+            }
+            if (anim) {
+                const offsetX = this.facing === 'left' ? this.x - 12 : this.x + this.width - 12;
+                anim.draw(context, offsetX, this.y, {
+                    flip: flipShield
                 });
             } else {
                 context.save();
@@ -313,6 +415,13 @@ class Player extends Entity {
                 context.strokeRect(this.x + offset - 10, this.y + 4, 20, this.height - 8);
                 context.restore();
             }
+        } else if (now < this.shieldUntil) {
+            context.save();
+            context.strokeStyle = '#93c5fd';
+            context.lineWidth = 4;
+            const offset = this.facing === 'right' ? this.width : 0;
+            context.strokeRect(this.x + offset - 10, this.y + 4, 20, this.height - 8);
+            context.restore();
         }
         this.bullets.forEach(b => b.draw(context));
     }
@@ -321,11 +430,11 @@ class Player extends Entity {
 class Enemy extends Entity {
     constructor(direction, speed, spriteRight, spriteLeft) {
         const width = 64;
-        const height = 80;
+        const height = 64;
         const x = direction === 'left'
             ? CONFIG.canvasWidth + CONFIG.enemySpawnPadding
             : -CONFIG.enemySpawnPadding;
-        const y = CONFIG.canvasHeight - 120;
+        const y = CONFIG.canvasHeight - CONFIG.groundOffset - height;
         super(x, y, width, height);
         this.direction = direction;
         this.speed = speed;
@@ -365,7 +474,7 @@ class Bullet extends Entity {
 
     draw(context) {
         if (this.anim) {
-            this.anim.draw(context, this.x, this.y, { flip: this.direction === 'left', scale: 0.5 });
+            this.anim.draw(context, this.x, this.y, { flip: this.direction === 'left' });
         } else {
             context.fillStyle = '#fde047';
             context.fillRect(this.x, this.y, this.width, this.height);
@@ -436,8 +545,21 @@ class VoiceInput {
                 this.onCommand(transcript);
             }
         };
-        this.recognition.onerror = () => {
-            this.onStatus('Error de voz');
+        this.recognition.onerror = (event) => {
+            switch (event.error) {
+                case 'not-allowed':
+                case 'service-not-allowed':
+                    this.onStatus('Micrófono bloqueado. Usa el teclado.');
+                    this.enabled = false;
+                    break;
+                case 'network':
+                    this.onStatus('Servicio de voz no disponible. Usa el teclado.');
+                    this.enabled = false;
+                    break;
+                default:
+                    this.onStatus(`Error de voz: ${event.error}`);
+                    break;
+            }
         };
         this.recognition.onend = () => {
             if (this.enabled) {
@@ -448,9 +570,13 @@ class VoiceInput {
 
     start() {
         if (this.recognition && !this.enabled) {
-            this.recognition.start();
-            this.enabled = true;
-            this.onStatus('Comando: escuchando…');
+            try {
+                this.recognition.start();
+                this.enabled = true;
+                this.onStatus('Comando: escuchando…');
+            } catch (error) {
+                this.onStatus('No se pudo iniciar el micrófono.');
+            }
         }
     }
 
@@ -467,11 +593,31 @@ class InputManager {
         this.callback = callback;
         this.hudUpdater = hudUpdater;
         this.voice = new VoiceInput(this.#handleCommand.bind(this), hudUpdater);
+        this.micPromise = null;
         this.#bindKeyboard();
     }
 
     startVoice() {
-        this.voice.start();
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            this.voice.start();
+            return;
+        }
+        if (!this.micPromise) {
+            this.micPromise = navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    stream.getTracks().forEach(track => track.stop());
+                    return true;
+                })
+                .catch(() => {
+                    this.hudUpdater('Micrófono bloqueado. Usa el teclado.');
+                    return false;
+                });
+        }
+        this.micPromise.then((granted) => {
+            if (granted) {
+                this.voice.start();
+            }
+        });
     }
 
     stopVoice() {

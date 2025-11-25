@@ -1,44 +1,83 @@
 {
   "sprites": {
     "playerIdleRight": {
-      "frames": ["sprites/espera_derecha.png"],
+      "spritesheet": "sprites/espera_derecha.png",
+      "frameCount": 8,
+      "frameWidth": 64,
+      "frameHeight": 64,
       "frameRate": 6
     },
     "playerIdleLeft": {
-      "frames": ["sprites/espera_izquierda.png"],
+      "spritesheet": "sprites/espera_izquierda.png",
+      "frameCount": 8,
+      "frameWidth": 64,
+      "frameHeight": 64,
       "frameRate": 6
     },
     "playerWalkRight": {
-      "frames": ["sprites/caminata_derecha.png"],
+      "spritesheet": "sprites/caminata_derecha.png",
+      "frameCount": 8,
+      "frameWidth": 64,
+      "frameHeight": 64,
       "frameRate": 10
     },
     "playerWalkLeft": {
-      "frames": ["sprites/caminata_derecha.png"],
+      "spritesheet": "sprites/caminata_derecha.png",
+      "frameCount": 8,
+      "frameWidth": 64,
+      "frameHeight": 64,
       "frameRate": 10
     },
     "enemyWalkRight": {
-      "frames": ["sprites/caminata_derecha_enemigo.png"],
+      "spritesheet": "sprites/caminata_derecha_enemigo.png",
+      "frameCount": 8,
+      "frameWidth": 64,
+      "frameHeight": 64,
       "frameRate": 8
     },
     "enemyWalkLeft": {
-      "frames": ["sprites/caminata_izquierda_enemigo.png"],
+      "spritesheet": "sprites/caminata_izquierda_enemigo.png",
+      "frameCount": 8,
+      "frameWidth": 64,
+      "frameHeight": 64,
       "frameRate": 8
     },
     "shieldLeft": {
-      "frames": ["sprites/escudo_izquierda.png"],
-      "frameRate": 6
-    },
-    "coin": {
-      "frames": ["sprites/Animacion_moneda.png"],
-      "frameRate": 10
-    },
-    "explosion": {
-      "frames": ["sprites/explosion.png"],
+      "spritesheet": "sprites/escudo_izquierda.png",
+      "frameCount": 8,
+      "frameWidth": 64,
+      "frameHeight": 64,
       "frameRate": 12
     },
+    "shieldRight": {
+      "spritesheet": "sprites/escudo_izquierda.png",
+      "frameCount": 8,
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frameRate": 12
+    },
+    "coin": {
+      "spritesheet": "sprites/Animacion_moneda.png",
+      "frameCount": 8,
+      "frameWidth": 16,
+      "frameHeight": 16,
+      "frameRate": 12
+    },
+    "explosion": {
+      "spritesheet": "sprites/explosion.png",
+      "frameCount": 6,
+      "frameWidth": 36,
+      "frameHeight": 112,
+      "frameRate": 16,
+      "loop": false,
+      "trimEmpty": true
+    },
     "bullet": {
-      "frames": ["sprites/bala.png"],
-      "frameRate": 1
+      "spritesheet": "sprites/bala.png",
+      "frameCount": 8,
+      "frameWidth": 16,
+      "frameHeight": 16,
+      "frameRate": 12
     }
   },
   "backgrounds": {
