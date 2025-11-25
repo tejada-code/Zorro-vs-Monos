@@ -43,12 +43,10 @@ class AssetLoader {
         this.sprites = new Map();
         this.backgrounds = new Map();
         this.audio = new Map();
-        // Detecta si estamos en GitHub Pages para construir las rutas correctamente.
-        this.basePath = window.location.hostname.includes('github.io') ? 'Zorro-vs-Monos/' : '';
     }
 
     async load() {
-        const response = await fetch(`${this.basePath}assets.json`);
+        const response = await fetch('assets.json');
         this.manifest = await response.json();
         await Promise.all([
             this.#loadSprites(),
@@ -60,7 +58,7 @@ class AssetLoader {
 
     async #loadSprites() {
         const tasks = Object.entries(this.manifest.sprites).map(async ([key, def]) => {
-            const sheet = await this.#loadImage(`${this.basePath}${def.spritesheet}`);
+            const sheet = await this.#loadImage(def.spritesheet);
             const frames = this.#sliceSheet(sheet, def);
             this.sprites.set(key, { frames, frameRate: def.frameRate ?? 8, loop: def.loop ?? true, width: def.frameWidth, height: def.frameHeight });
         });
@@ -92,7 +90,7 @@ class AssetLoader {
 
     async #loadBackgrounds() {
         const tasks = Object.entries(this.manifest.backgrounds).map(async ([key, path]) => {
-            const img = await this.#loadImage(`${this.basePath}${path}`);
+            const img = await this.#loadImage(path);
             this.backgrounds.set(key, img);
         });
         await Promise.all(tasks);
@@ -100,12 +98,11 @@ class AssetLoader {
 
     async #loadAudio() {
         if (this.manifest.audio.music) {
-            const path = `${this.basePath}${this.manifest.audio.music}`;
-            this.audio.set('music', new Howl({ src: [path], loop: true, volume: 0.4 }));
+            this.audio.set('music', new Howl({ src: [this.manifest.audio.music], loop: true, volume: 0.4 }));
         }
         if (this.manifest.audio.sfx) {
             for (const [key, path] of Object.entries(this.manifest.audio.sfx)) {
-                this.audio.set(key, new Howl({ src: [`${this.basePath}${path}`], volume: 0.6 }));
+                this.audio.set(key, new Howl({ src: [path], volume: 0.6 }));
             }
         }
     }
