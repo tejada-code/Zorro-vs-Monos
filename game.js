@@ -58,15 +58,9 @@ class AssetLoader {
 
     async #loadSprites() {
         const tasks = Object.entries(this.manifest.sprites).map(async ([key, def]) => {
-            const sheet = await this.#loadImage(def.spritesheet);
+            const sheet = await this.#loadImage(def.spritesheet); // Usamos la ruta completa del manifest
             const frames = this.#sliceSheet(sheet, def);
-            this.sprites.set(key, {
-                frames,
-                frameRate: def.frameRate ?? 8,
-                loop: def.loop ?? true,
-                width: def.frameWidth ?? frames[0].width,
-                height: def.frameHeight ?? frames[0].height
-            });
+            this.sprites.set(key, { frames, frameRate: def.frameRate ?? 8, loop: def.loop ?? true, width: def.frameWidth, height: def.frameHeight });
         });
         await Promise.all(tasks);
     }
@@ -81,18 +75,16 @@ class AssetLoader {
             canvas.width = frameWidth;
             canvas.height = frameHeight;
             const context = canvas.getContext('2d');
-            context.drawImage(sheet, i * frameWidth, 0, frameWidth, frameHeight, 0, 0, frameWidth, frameHeight);
+            context.drawImage(sheet, i * frameWidth, 0, frameWidth, frameHeight, 0, 0, frameWidth, frameHeight); // Solo añadimos el frame si tiene píxeles visibles, para evitar parpadeos.
             // Solo añadimos el frame si tiene píxeles visibles, para evitar parpadeos.
-            if (this.#hasVisiblePixels(context, frameWidth, frameHeight)) {
-                frames.push(canvas);
-            }
+            if (this.#hasVisiblePixels(context, frameWidth, frameHeight)) { frames.push(canvas); }
         }
         // Si después de filtrar no queda ningún frame, añadimos uno vacío para evitar errores.
         if (frames.length === 0) {
             const canvas = document.createElement('canvas');
             canvas.width = frameWidth;
             canvas.height = frameHeight;
-            frames.push(canvas);
+            frames.push(canvas); // Si la animación de explosión tiene frames vacíos al final, esto puede causar problemas.
         }
         return frames;
     }
