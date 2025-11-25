@@ -1,0 +1,52 @@
+{
+  "sprites": {
+    "playerIdleRight": {
+      "frames": ["sprites/espera_derecha.png"],
+      "frameRate": 6
+    },
+    "playerIdleLeft": {
+      "frames": ["sprites/espera_izquierda.png"],
+      "frameRate": 6
+    },
+    "playerWalkRight": {
+      "frames": ["sprites/caminata_derecha.png"],
+      "frameRate": 10
+    },
+    "playerWalkLeft": {
+      "frames": ["sprites/caminata_derecha.png"],
+      "frameRate": 10
+    },
+    "enemyWalkRight": {
+      "frames": ["sprites/caminata_derecha_enemigo.png"],
+      "frameRate": 8
+    },
+    "enemyWalkLeft": {
+      "frames": ["sprites/caminata_izquierda_enemigo.png"],
+      "frameRate": 8
+    },
+    "shieldLeft": {
+      "frames": ["sprites/escudo_izquierda.png"],
+      "frameRate": 6
+    },
+    "coin": {
+      "frames": ["sprites/Animacion_moneda.png"],
+      "frameRate": 10
+    },
+    "explosion": {
+      "frames": ["sprites/explosion.png"],
+      "frameRate": 12
+    },
+    "bullet": {
+      "frames": ["sprites/bala.png"],
+      "frameRate": 1
+    }
+  },
+  "backgrounds": {
+    "level1": "fondo/fondo_nivel_1.avif",
+    "level2": "fondo/fondo_nivel_2.avif"
+  },
+  "audio": {
+    "music": "sonido/musica_fondo.mp3"
+  }
+}
+

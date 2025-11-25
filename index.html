@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zorro vs Monos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Changa:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js" integrity="sha512-2+QvYlr4kkpFmS6r30YIOCwRvDDDeWGPAHDq6cHruM3aMcMBXNIN1qNbfXDnpa9eKJeNEqXWiwxupCSvJzP4og==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+    <div class="screen screen--active" id="main-menu">
+        <div class="menu-card">
+            <h1>Zorro vs Monos</h1>
+            <p class="menu-credit">Rodrigo Alonso Tejada Morales</p>
+            <div class="menu-buttons">
+                <button data-action="play">Jugar</button>
+                <button data-action="instructions">Instrucciones</button>
+                <button data-action="sound-toggle">Sonido On/Off</button>
+                <button data-action="exit">Salir</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal hidden" id="instructions-modal">
+        <div class="modal-card">
+            <h2>Instrucciones</h2>
+            <p>Comandos por voz: izquierda, derecha, dispara, escudo.</p>
+            <p>Fallback teclado: ←, →, Z (dispara), X (escudo).</p>
+            <p>Objetivo: reúne 3 monedas para avanzar. Pierdes al recibir 3 golpes.</p>
+            <button data-action="close-instructions">Cerrar</button>
+        </div>
+    </div>
+
+    <div class="modal hidden" id="level-modal">
+        <div class="modal-card">
+            <p class="modal-text" id="level-message">Ganaste la batalla, pero la guerra aún sigue</p>
+            <button data-action="continue-level">Continuar</button>
+        </div>
+    </div>
+
+    <div class="modal hidden" id="final-modal">
+        <div class="modal-card">
+            <p class="modal-text" id="final-message">¡Victoria! Has derrotado a los monos.</p>
+            <button data-action="restart">Jugar de nuevo</button>
+        </div>
+    </div>
+
+    <div class="modal hidden" id="gameover-modal">
+        <div class="modal-card">
+            <p class="modal-text">Has muerto. ¿Quieres intentarlo de nuevo?</p>
+            <button data-action="retry">Jugar de nuevo</button>
+        </div>
+    </div>
+
+    <main id="game-wrapper">
+        <canvas id="game-canvas" width="960" height="540"></canvas>
+        <div class="hud">
+            <div class="hud-item" id="hud-coins">Monedas: 0/3</div>
+            <div class="hud-item" id="hud-lives">Vidas: ❤❤❤</div>
+            <div class="hud-item" id="hud-command">Comando: —</div>
+        </div>
+        <div class="audio-controls">
+            <button id="music-toggle">Música</button>
+            <button id="sfx-toggle">SFX</button>
+        </div>
+    </main>
+
+    <script type="module" src="game.js"></script>
+</body>
+</html>
