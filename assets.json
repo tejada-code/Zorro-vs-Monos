@@ -22,7 +22,7 @@
       "frameRate": 10
     },
     "playerWalkLeft": {
-      "spritesheet": "sprites/caminata_derecha.png",
+      "spritesheet": "sprites/caminata_izquierda.png",
       "frameCount": 8,
       "frameWidth": 64,
       "frameHeight": 64,
@@ -49,13 +49,6 @@
       "frameHeight": 64,
       "frameRate": 12
     },
-    "shieldRight": {
-      "spritesheet": "sprites/escudo_izquierda.png",
-      "frameCount": 8,
-      "frameWidth": 64,
-      "frameHeight": 64,
-      "frameRate": 12
-    },
     "coin": {
       "spritesheet": "sprites/Animacion_moneda.png",
       "frameCount": 8,
@@ -64,17 +57,32 @@
       "frameRate": 12
     },
     "explosion": {
-      "spritesheet": "sprites/explosion.png",
-      "frameCount": 6,
-      "frameWidth": 36,
-      "frameHeight": 112,
-      "frameRate": 16,
-      "loop": false,
-      "trimEmpty": true
+      "spritesheet": "sprites/Explosion.png",
+      "frameCount": 12,
+      "frameWidth": 32,
+      "frameHeight": 32,
+      "frameRate": 24,
+      "loop": false
+    },
+    "shotRight": {
+      "spritesheet": "sprites/Disparo_derecho.png",
+      "frameCount": 4,
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frameRate": 12,
+      "loop": false
+    },
+    "shotLeft": {
+      "spritesheet": "sprites/Disparo_izquierda.png",
+      "frameCount": 4,
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frameRate": 12,
+      "loop": false
     },
     "bullet": {
       "spritesheet": "sprites/bala.png",
-      "frameCount": 8,
+      "frameCount": 4,
       "frameWidth": 16,
       "frameHeight": 16,
       "frameRate": 12
@@ -85,7 +93,13 @@
     "level2": "fondo/fondo_nivel_2.avif"
   },
   "audio": {
-    "music": "sonido/musica_fondo.mp3"
+    "music": "sonido/musica_fondo.mp3",
+    "sfx": {
+      "shot": "sonido/disparo.wav",
+      "explosion": "sonido/explosion.wav",
+      "coin": "sonido/moneda.wav",
+      "shield": "sonido/escudo.wav",
+      "hit": "sonido/golpe.wav"
+    }
   }
 }
-
